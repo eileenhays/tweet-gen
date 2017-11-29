@@ -1,122 +1,97 @@
 import os
-import sys
 from random import choice
 import twitter
 
 
-# class Tweets(object):
-api = twitter.Api(
-                  consumer_key=os.environ.get("TWITTER_CONSUMER_KEY"),
-                  consumer_secret=os.environ.get("TWITTER_CONSUMER_SECRET"),
-                  access_token_key=os.environ.get("TWITTER_ACCESS_TOKEN_KEY"),
-                  access_token_secret=os.environ.get("TWITTER_ACCESS_TOKEN_SECRET")
-                  )
+class Tweets(object):
 
-print api.VerifyCredentials()
+	api = twitter.Api(
+	                  consumer_key=os.environ.get("TWITTER_CONSUMER_KEY"),
+	                  consumer_secret=os.environ.get("TWITTER_CONSUMER_SECRET"),
+	                  access_token_key=os.environ.get("TWITTER_ACCESS_TOKEN_KEY"),
+	                  access_token_secret=os.environ.get("TWITTER_ACCESS_TOKEN_SECRET")
+	                  )
 
-statuses = api.GetUserTimeline(screen_name='eileenbeenleft')
-print [s.text for s in statuses]
-
-# def search_tweets(screen_name):
-#     """Search tweets given a screen_name."""
-
-#     TWITTER_API_URL = 'https://api.twitter.com/1.1/statuses/user_timeline.json'
-#     payload = {'screen_name' = screen_name,
-#                   'exclude_replies' = 'true',
-#                   'include_rts' = 'false'
-#     }
-
-#     tweets = requests.get(TWITTER_API_URL, params=payload)
-
-#     return tweets.json()
+	print api.VerifyCredentials()
 
 
-# def make_chains(tweet_data):
-#     """Takes tweet text as string; returns dictionary of markov chains."""
-
-#     # if "text" in tweet_data["tweet"]: 
-#     chains = {}
-
-#     words = text_string.split()
-
-#     for i in range(len(words) - 2):
-#         key = (words[i], words[i + 1])
-#         value = words[i + 2]
-
-#         if key not in chains:
-#             chains[key] = []
-
-#         chains[key].append(value)
-
-#         # or we could replace the last three lines with:
-#         #    chains.setdefault(key, []).append(value)
-
-#     return chains
+	def __init__(self, screen_name=None):
+		self.screen_name = screen_name
 
 
-# def make_text(chains):
-#     """Takes dictionary of markov chains; returns random text."""
+	def search_tweets(self):
+	    """Search tweets given a screen_name."""
+
+	    tweets = []
+	    try:
+		    statuses = api.GetUserTimeline(screen_name=self.screen_name, include_rts=False, count=200)
+		    print statuses
+	    except ValueError as error:
+			print error
+	    tweets.extend([s.text for s in statuses])
+
+	    while len(statuses) != 0:
+	    	try:
+	    		print statuses[len(statuses)-1].id-1
+	    		statuses = api.GetUserTimeline(screen_name=self.screen_name, include_rts=False, count=200, max_id=statuses[len(statuses)-1].id-1)
+	    	except ValueError as error:
+	    		print error
+	    	tweets.extend([s.text for s in statuses])
+
+	    return tweets
 
 
+	@classmethod
+	def make_starting_words_dict(tweet_data):
+		"""Returns set of tuples of first two words of all tweets."""	
 
-#     key = choice(chains.keys())
-#     words = [key[0], key[1]]
-#     count = len(key[0] + key[1]) + 2
-#     while key in chains:
-#         # Keep looping until we have a key that isn't in the chains
-#         # (which would mean it was the end of our original text)
-#         #
-#         # Note that for long texts (like a full book), this might mean
-#         # it would run for a very long time.
+		starting_words = []
 
-#         word = choice(chains[key])
-#         if count < 140 - len(word):
-#             count = count + len(word) + 1 #include extra space after word
-#             words.append(word)
-#             key = (key[1], word)
-#         else:
-#             break
+		for tweet in tweet_data:
+			words = tweet.split()
+			if len(words) >= 2:
+				chain = (words[0], words[1])
+				starting_words.append(chain)
 
-#     return " ".join(words)
+		return starting_words
 
 
-# def tweet(chains):
-#     # Use Python os.environ to get at environmental variables
-#     # Note: you must run `source secrets.sh` before running this file
-#     # to make sure these environmental variables are set.
-#     user_input = None
-#     tweet = make_text(chains)
-#     print tweet
+	@classmethod	
+	def make_markov_dict(tweet_data):
+	    """Takes tweet text as string; returns dictionary of markov chains."""
 
-#     while True:
-#         print ""
-#         user_input = raw_input("Do you want to tweet this? [t for tweet, r for regenerate, q to quit] ")
-#         if user_input == "t":
-#             status = api.PostUpdate(tweet)
-#             print status.text
-#         elif user_input == "r":
-#             print ""
-#             tweet = make_text(chains)
-#             print tweet
-#             print ""
-#         elif user_input == "q":
-#             break
-#             # else:
+	    if tweet_data: 
+		    markov_dict = {}
 
+		    for tweet in tweet_data: 
+			    words = tweet.split()
 
-# # Get the filenames from the user through a command line prompt, ex:
-# # python markov.py green-eggs.txt shakespeare.txt
-# filenames = sys.argv[1:]
+			    for i in range(len(words) - 2):
+			    	first_word = words[i]
+			    	second_word = words[i + 1]
+			    	next_word = words[i + 2]
 
-# # Open the files and turn them into one long string
-# text = open_and_read_file(filenames)
+			        chain = (first_word, second_word)
+			        value = next_word
 
-# # Get a Markov chain
-# chains = make_chains(text)
-# # print chains
+			        markov_dict.setdefault(chain, []).append(value)
 
-# # text = make_text(chains)
+	    return markov_dict
 
 
-# # Your task is to write a new function tweet, that will take chains as input
-# tweet(chains)
+	def random_tweet_generator(self):
+	    """Returns random Markov tweet"""
+
+	    tweets = search_tweets(self.screen_name)
+	    starting_words = make_starting_words_dict(tweets)
+	    markov_dict = make_markov_dict(tweets)
+	    start = choice(starting_words)
+	    text = [start[0], start[1]]
+	    chain = start
+		
+	    while chain in markov_dict:
+	        next_word = choice(markov_dict[chain])
+	        text.append(next_word)
+	        chain = (chain[1], next_word)
+
+	    return " ".join(text)
