@@ -6,6 +6,9 @@ from random import choice
 from flask import session
 from ast import literal_eval as make_tuple
 
+reload(sys)
+sys.setdefaultencoding("utf-8")
+
 
 class UserTweets(object):
 	"""Tweets from a user to create new Markov chain Tweets."""
@@ -19,15 +22,12 @@ class UserTweets(object):
 	print api.VerifyCredentials()
 
 	def __init__(self, screen_name=None):
+		"""Initiates a Twitter screen name object"""
+
 		self.screen_name = screen_name
-		session[self.screen_name] = {}
-
 		tweet_data = self.search_tweets()
-
 		self.start_lst = self.make_starting_lst(tweet_data)
 		self.markov_dict = self.make_markov_dict(tweet_data)
-
-		self.save_to_session()
 
 
 	def __repr__(self):
@@ -43,7 +43,7 @@ class UserTweets(object):
 		    										  include_rts=False, 
 		    										  count=200
 		    										  )
-		    # print statuses
+		    print statuses
 	    except ValueError as error:
 			print error
 	    tweets.extend([s.text for s in statuses])
@@ -105,7 +105,7 @@ class UserTweets(object):
 	def strip_punctuation(words):
 		"""Removes punctuation from string."""
 
-		exclude = set('!"%\'()*+,-./:;<=>?[\\]^_`{|}~')
+		exclude = set('!"\()./:;<=>?[\\]^_`{|}~')
 		strip_words = ''.join(ch for ch in words if ch not in exclude)
 
 		return strip_words
@@ -115,40 +115,22 @@ class UserTweets(object):
 	def scrub(word):
 		"""Removes words that start with '@', 'http', or 'via' from chains."""
 
-		if ("@" == word[0]) or ("http" in word) or ("via" == word):
+		if ("@" == word[0]) or("http" in word) or ("via" == word):
 			return ""
 
 		return word
 
 
-	def save_to_session(self):
-	    """Persists starting words list and markov dictionary to session whenever
-	    new screen name is given to make it easier to retrieve for new tweets.
-	    """
-
-	    session[self.screen_name]['start_lst'] = self.start_lst
-	    session[self.screen_name]['markov_dict'] = self.markov_dict
-
-
 	def random_tweet_generator(self):
 	    """Returns random Markov tweet and saves to session"""
-	    
-	    start_lst = session[self.screen_name]['start_lst']
-	    markov_dict = session[self.screen_name]['markov_dict']
-	    # print markov_dict
 
-	    start = make_tuple(choice(start_lst))
-	    # print "start", start
+	    start = make_tuple(choice(self.start_lst))
 	    chain = start
 	    text = [chain[0], chain[1]]
-	    # print "text list", text
 
-	    while str(chain) in markov_dict:
-	        next_word = choice(markov_dict[str(chain)])
-	        print "next word", next_word
+	    while str(chain) in self.markov_dict:
+	        next_word = choice(self.markov_dict[str(chain)])
 	        text.append(next_word)
-	        # print "text lst", text 
 	        chain = (chain[1], next_word)
-	        # print "new chain", chain
 
 	    return " ".join(text)

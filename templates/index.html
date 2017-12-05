@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Brandless Markov Tweet Generator</title>
+    <link href="http://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/united/bootstrap.css" rel="stylesheet">
+    <style>
+      .description {
+        size: 10em;
+        font-style: italic;
+        color: grey;
+      }
+      .tweets {
+        text-align: center;
+      }
+      #tweet-text {
+        padding: 10px 150px 10px 150px;
+      }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container-fluid">
+    <div class="row tweets">
+      <h1>Random Markov Tweet Generator</h1>
+      <p>Create new tweets using Markov chains of any Twitter user's past tweets by providing a screen name below.</p>
+    </div>  
+    <div class="row">
+      <div class="tweets">
+          <form action="/initial-tweet">
+            <h2>Twitter screen name</h2>
+              <span class="description">(It is not necessary to to include "@")</span><br>      
+            <input type="text" name="screen-name"><br><br>
+            <input class="btn" type="submit" value="Generate New Tweet"><br><br>
+          </form>
+      </div>
+    <div class="row">
+      <div class="tweets">
+        {% if screen_name != None %}
+        <h2>@{{ screen_name.screen_name}}:</h2>
+        <h3 id="tweet-text">{{ tweet }}</h3><br>
+        {% else %}
+        <h3 id="tweet-text">{{ tweet }}</h3><br>
+        {% endif %}
+      </div>
+    </div>
+    </div>
+<!--     <div class="row">
+      <div class="tweets">
+        <h2>Generated tweet</h2> 
+        {% if screen_name != None %}
+        <h3>@{{ screen_name.screen_name}}:</h3>
+        <h3 id="tweet-text">{{ tweet }}</h3><br>
+
+        <div id="tweet-btn">
+          <button type="button" class="btn">Generate New Tweet</button>
+        </div>
+        {% else %}
+        <br>
+        {% endif %}
+      </div>
+    </div> -->
+
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.js"></script>
+<!--     <script src="static/js/tweets.js"></script> 
+ -->
+</body>
+
+</html>
