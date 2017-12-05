@@ -1,6 +1,9 @@
-Markov Tweet Generator, 2017
+Markov Tweet Generator, Nov 2017
 
-Setup/Installation
+Description: 
+Web application that generates pseudo-random tweets using Markov chains created from a Twitter user's tweet history. Simply input any Twitter user's screen name and create a new tweet.   
+
+Setup/Installation:
 
 ### Requirements ###
 	Python 2.7
