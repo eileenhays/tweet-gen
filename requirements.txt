@@ -14,7 +14,7 @@ ipython==5.5.0
 ipython-genutils==0.2.0
 itsdangerous==0.24
 Jinja==1.2
-Jinja2==2.10
+Jinja2==2.11.3
 MarkupSafe==1.0
 oauthlib==2.0.6
 pathlib2==2.3.0
