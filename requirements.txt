@@ -10,7 +10,7 @@ Flask==0.12.2
 Flask-DebugToolbar==0.10.1
 future==0.16.0
 idna==2.6
-ipython==5.5.0
+ipython==7.16.3
 ipython-genutils==0.2.0
 itsdangerous==0.24
 Jinja==1.2
